@@ -275,7 +275,7 @@
 
       if(player.x===greenMushroom.x && player.y===greenMushroom.y && !gameOver){
         if(moveCount < 5){
-          output.textContent += `\n\n🎯 Znalazłeś kandydata, ale musisz wykonać przynajmniej 5 ruchów. Wykonałeś: ${moveCount}. Wykonaj brakujące ruchy i wróć na mapie na ikonę: 💎`;
+          output.textContent += `\n\n🎯 Znalazłeś kandydata, ale musisz wykonać przynajmniej 5 ruchów. Wykonałeś: ${moveCount}. Wykonaj brakujące ruchy i wróć na mapie na ikonę: 💎\n `;
         } else {
           gameOver = true;
           asciiDiv.textContent = `
@@ -397,6 +397,7 @@
   </script>
 </body>
 </html>
+
 
 
 
