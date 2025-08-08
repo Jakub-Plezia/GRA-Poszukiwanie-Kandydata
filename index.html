@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pl">
 <head>
@@ -61,6 +62,12 @@
       display: none;
       margin-top: 8px;
     }
+    /* inventory screen */
+    #inventoryScreen { display:none; margin-top:10px; }
+    .choice { border: 1px solid #00FF00; padding: 10px; margin-bottom: 10px; cursor: pointer; }
+    .choice:hover { background: rgba(0,255,0,0.03); }
+    .small { font-size: 0.9em; color: #99ff99; }
+    .center { text-align:center; }
   </style>
 </head>
 <body>
@@ -69,7 +76,8 @@
   <div id="characterSelect">
     <h2>Witaj w mini-grze. Wybierz swoją postać:</h2>
 
-    <div class="character-choice" onclick="startGame('Rekruter (poszukiwacz talentów)')">
+    <!-- changed onclick to onCharacterChosen to show inventory next -->
+    <div class="character-choice" onclick="onCharacterChosen('Rekruter')">
       <div class="ascii-art">
    ___
   (o o)
@@ -82,7 +90,7 @@
       <strong>Rekruter</strong> — poszukiwacz talentów
     </div>
 
-    <div class="character-choice" onclick="startGame('Właściciel / Szef działu')">
+    <div class="character-choice" onclick="onCharacterChosen('Szef')">
       <div class="ascii-art">
   \O/
    |
@@ -94,7 +102,7 @@
       <strong>Właściciel / Szef działu</strong>
     </div>
 
-    <div class="character-choice" onclick="startGame('Tylko się rozglądam')">
+    <div class="character-choice" onclick="onCharacterChosen('Turysta')">
       <div class="ascii-art">
   _o_
  /   \
@@ -104,6 +112,16 @@
  [TURYSTA]
       </div>
       <strong>Tylko się rozglądam</strong>
+    </div>
+  </div>
+
+  <!-- NEW: Ekran wyboru ekwipunku -->
+  <div id="inventoryScreen">
+    <h3>Wybierz ekwipunek:</h3>
+    <div id="inventoryOptions"></div>
+    <div class="small">Wybrany ekwipunek wpłynie na końcowy komunikat gry.</div>
+    <div style="margin-top:10px;">
+      <button onclick="cancelInventory()">⤺ Wróć</button>
     </div>
   </div>
 
@@ -134,12 +152,15 @@
     const music = document.getElementById("bgMusic");
     const playMusicBtn = document.getElementById("playMusicBtn");
     const endButtons = document.getElementById("endButtons");
+    const inventoryScreen = document.getElementById("inventoryScreen");
+    const inventoryOptions = document.getElementById("inventoryOptions");
 
     const mapSize = 5;
     let player = { x: 2, y: 2 };
     let greenMushroom = {};
     let discovered = [];
     let characterName = "";
+    let chosenItem = "";
     let gameOver = false;
     let moveCount = 0;
 
@@ -156,94 +177,120 @@
       "w którym kreatywność jest częścią roli do której rekrutujesz 🎨\nChyba ta gra mówi sama za siebie;)\n ",
     ];
 
-    // Muzyka (darmowe utwory) - jeśli któryś link nie działa, przycisk "Włącz muzykę" pozwoli ręcznie uruchomić.
     const musicTracks = [
       "https://files.freemusicarchive.org/storage-freemusicarchive-org/music/no_curator/Komiku/Its_time_for_adventure/Komiku_-_01_-_Its_time_for_adventure.mp3",
       "https://files.freemusicarchive.org/storage-freemusicarchive-org/music/no_curator/Komiku/Poupis_Theme/Komiku_-_02_-_Poupis_Theme.mp3",
       "https://files.freemusicarchive.org/storage-freemusicarchive-org/music/no_curator/Komiku/The_Adventure/Komiku_-_The_Adventure.mp3"
     ];
 
-    function startGame(chosenCharacter) {
-      characterName = chosenCharacter;
-      document.getElementById("characterSelect").style.display = "none";
-      document.getElementById("game").style.display = "block";
+    // inventory options per character
+    const inventoryByCharacter = {
+      'Rekruter': [
+        { id: 'lupa_menadzer', title: '🔍 Lupa poszukiwacza menagera zespołu', ascii: '   ___\\n  (o o)\\n   \\\\_/\\n  --|--\\n    |\\n   / \\' },
+        { id: 'szkielko_lider', title: '🔬 Szkiełko poszukiwacza lidera biznesowego', ascii: '   _/\\\\_\\n  ( . . )\\n   \\\\_/_' }
+      ],
+      'Szef': [
+        { id: 'orez_lider', title: '⚔ Oręż sprawdzonego lidera biznesowego', ascii: '   /|\\\\\\n  /_|_\\\\\\n    |' },
+        { id: 'berlo_perfect', title: '🔮 Berło wyczuwające perfect match', ascii: '    _|_\\n   (o o)\\n    |_|' }
+      ],
+      'Turysta': [
+        { id: 'mapa', title: '🗺 Mapa', ascii: '   ____\\n  /____\\' }
+      ]
+    };
 
+    // When character is chosen - show inventory options instead of starting immediately
+    function onCharacterChosen(kind){
+      characterName = kind;
+      document.getElementById('characterSelect').style.display = 'none';
+      inventoryScreen.style.display = 'block';
+      renderInventoryOptions(kind);
+    }
+
+    function renderInventoryOptions(kind){
+      inventoryOptions.innerHTML = '';
+      const list = inventoryByCharacter[kind] || [];
+      list.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'choice';
+        div.innerHTML = `<div class="ascii-art">${item.ascii}</div><strong>${item.title}</strong>`;
+        div.onclick = () => pickItem(item);
+        inventoryOptions.appendChild(div);
+      });
+    }
+
+    function pickItem(item){
+      chosenItem = item.title;
+      // for Turysta, if mapa chosen we'll later add the share text on finish (handled in showLocation)
+      inventoryScreen.style.display = 'none';
+      document.getElementById('game').style.display = 'block';
+      // start game (initialize variables)
       player = { x: 2, y: 2 };
-      greenMushroom = {
-        x: Math.floor(Math.random() * mapSize),
-        y: Math.floor(Math.random() * mapSize)
-      };
-      discovered = Array.from({ length: mapSize }, () => Array(mapSize).fill(false));
+      greenMushroom = { x: Math.floor(Math.random()*mapSize), y: Math.floor(Math.random()*mapSize) };
+      discovered = Array.from({length:mapSize},()=>Array(mapSize).fill(false));
       discovered[player.x][player.y] = true;
       gameOver = false;
-      moveCount = 0; // reset ruchów
-      asciiDiv.textContent = "";
-      endButtons.innerHTML = "";
-      output.textContent = `Wybrałeś postać: ${characterName}\nROZPOCZNIJMY GRĘ. DO STEROWANIA UŻYJ KLAWIATURY LUB STRZAŁEk NA EKRANIE. Twoim celem jest znalezienie legendarnego KANDYDATA. Poniżej znajduje się mapa, która pomoże Ci w nawigacji`;
+      moveCount = 0;
+      asciiDiv.textContent = '';
+      endButtons.innerHTML = '';
+      output.textContent = `Wybrałeś postać: ${characterName} — ${chosenItem}\nROZPOCZNIJ GRĘ. Steruj strzałkami lub przyciskami.`;
 
-      const randomTrack = musicTracks[Math.floor(Math.random() * musicTracks.length)];
+      const randomTrack = musicTracks[Math.floor(Math.random()*musicTracks.length)];
       music.src = randomTrack;
-      music.play().then(()=>{
-        playMusicBtn.style.display = "none";
-      }).catch((err)=>{
-        console.log("Autoplay zablokowane:", err);
-        playMusicBtn.style.display = "inline-block";
-      });
+      music.play().then(()=>{ playMusicBtn.style.display='none'; }).catch((e)=>{ playMusicBtn.style.display='inline-block'; });
 
       showLocation();
     }
 
-    function tryPlayMusic(){
-      music.play().then(()=>{
-        playMusicBtn.style.display = "none";
-      }).catch(err=>{
-        alert("Nie udało się odtworzyć muzyki. Spróbuj kliknąć jeszcze raz lub sprawdź ustawienia przeglądarki.");
-        console.log(err);
-      });
+    function cancelInventory(){
+      inventoryScreen.style.display='none';
+      document.getElementById('characterSelect').style.display='block';
+      characterName='';
     }
 
-    function describeLocation(x, y) {
+    function tryPlayMusic(){
+      music.play().then(()=>{ playMusicBtn.style.display='none'; }).catch(()=>{ alert('Kliknij jeszcze raz, przeglądarka zablokowała autoplay.'); });
+    }
+
+    function describeLocation(x, y){
       const index = (x * mapSize + y) % locations.length;
       return locations[index];
     }
 
-    function showMap() {
-      let mapText = "";
-      for (let i = 0; i < mapSize; i++) {
-        for (let j = 0; j < mapSize; j++) {
-          if (i === player.x && j === player.y) {
-            mapText += " 😎";
-          } else if (discovered[i][j] && i === greenMushroom.x && j === greenMushroom.y) {
-            mapText += "G ";
-          } else if (discovered[i][j]) {
-            mapText += " . ";
-          } else {
-            mapText += " ? ";
-          }
+    function showMap(){
+      let mapText = '';
+      for(let i=0;i<mapSize;i++){
+        for(let j=0;j<mapSize;j++){
+          if(i===player.x && j===player.y) mapText += ' 😎';
+          else if(discovered[i][j] && i===greenMushroom.x && j===greenMushroom.y) mapText += 'G ';
+          else if(discovered[i][j]) mapText += ' . ';
+          else mapText += ' ? ';
         }
-        mapText += "\n";
+        mapText += '\n';
       }
       mapDiv.textContent = mapText;
     }
 
-    function showLocation() {
+    function showLocation(){
       discovered[player.x][player.y] = true;
       const loc = describeLocation(player.x, player.y);
       output.textContent += `\nJesteś w miejscu: ${loc}. (${player.x},${player.y})`;
 
-      if (player.x === greenMushroom.x && player.y === greenMushroom.y && !gameOver) {
-        gameOver = true;
-        output.textContent += `\n\n`;
-        asciiDiv.textContent = `
+      if(player.x===greenMushroom.x && player.y===greenMushroom.y && !gameOver){
+        if(moveCount < 5){
+          output.textContent += `\n\n🎯 Znalazłeś kandydata, ale musisz wykonać przynajmniej 5 ruchów. Wykonałeś: ${moveCount}.`;
+        } else {
+          gameOver = true;
+          asciiDiv.textContent = `
  ██████  ██████   █████  ████████ ██    ██ ██       █████   ██████      ██ ███████     ███████ ███    ██  █████  ██       █████  ███████ ██      ███████ ███████     ██   ██  █████  ███    ██ ██████  ██    ██ ██████   █████  ████████  █████  
 ██       ██   ██ ██   ██    ██    ██    ██ ██      ██   ██ ██           ██ ██             ███  ████   ██ ██   ██ ██      ██   ██    ███  ██      ██      ██          ██  ██  ██   ██ ████   ██ ██   ██  ██  ██  ██   ██ ██   ██    ██    ██   ██ 
 ██   ███ ██████  ███████    ██    ██    ██ ██      ███████ ██           ██ █████         ███   ██ ██  ██ ███████ ██      ███████   ███   ██      █████   ███████     █████   ███████ ██ ██  ██ ██   ██   ████   ██   ██ ███████    ██    ███████ 
 ██    ██ ██   ██ ██   ██    ██    ██    ██ ██      ██   ██ ██      ██   ██ ██           ███    ██  ██ ██ ██   ██ ██      ██   ██  ███    ██      ██           ██     ██  ██  ██   ██ ██  ██ ██ ██   ██    ██    ██   ██ ██   ██    ██    ██   ██ 
  ██████  ██   ██ ██   ██    ██     ██████  ███████ ██   ██  ██████  █████  ███████     ███████ ██   ████ ██   ██ ███████ ██   ██ ███████ ███████ ███████ ███████     ██   ██ ██   ██ ██   ████ ██████     ██    ██████  ██   ██    ██    ██   ██ 
-                                                                                                                                                                                                                                                 
-                                                                                                                                                                                                                                                 
-        `;
-        output.textContent += `\n\n🎉 GRATULACJE! Znalazłeś LEGENDARNEGO KANDYDATA! 🌟\nTwój wynik: ${moveCount} ruchów\nMożesz się z nim skontaktować poprzez LINKEDIN: 👋👋 https://www.linkedin.com/in/jakub-plezia/\ \nKoniec gry.\n++++++++++++++++++++++++++++++++++++++++++++++++++
+`;
+          // build end message
+          let endText = `\n\n🎉 GRATULACJE! Znalazłeś LEGENDARNEGO KANDYDATA! 🌟\nTwój wynik: ${moveCount} ruchów\n`;
+          if(chosenItem){
+            endText += `${chosenItem} — ten przedmiot lśni i drży — ten kandydat to perfect match!\nMożesz się z nim skontaktować poprzez LINKEDIN: 👋👋 https://www.linkedin.com/in/jakub-plezia/\ \nKoniec gry.\n++++++++++++++++++++++++++++++++++++++++++++++++++
 ++++++++++++++++++++++++++++++++++++++++++++++++++
 ++++++++++++++*#*+***#++++*+++++++++++++++++++++++
 ++++++++*#+*%%%#%%%%@%%%%%#+##++*+++++++++++++++++
@@ -277,93 +324,78 @@
 ****++****#+=+=------*++=*************+++*********
 ==++=++++=+++=*=---===+=++==+***+++++++**++++*****
 ----=--=++-----====+*+--=++-----+*******+++++++**+ \n 👍LIKE 🔄SHARE 💬COMMENT - akcja #OPEN TO WORK`;
+          }
+          if(characterName === 'Turysta' && chosenItem.toLowerCase().includes('map')){
+            endText += `\n🗺 Udostępnij post - poszerz zasięgi\n`;
+          }
+          endText += `\nKoniec gry.`;
+          output.textContent += endText;
 
-        endButtons.innerHTML = `
-          <button onclick="restartSame()">Zagraj ponownie (ta sama postać)</button>
-          <button onclick="restartNew()">Wybierz inną postać</button>
-        `;
+          endButtons.innerHTML = `
+            <button onclick="restartSame()">Zagraj ponownie (ta sama postać)</button>
+            <button onclick="restartNew()">Wybierz inną postać</button>
+          `;
+        }
       }
       showMap();
     }
 
-    function move(direction) {
-      if (gameOver) return;
-      let moved = false;
-      if (direction === "up" && player.x > 0) { player.x--; moved = true; }
-      else if (direction === "down" && player.x < mapSize - 1) { player.x++; moved = true; }
-      else if (direction === "left" && player.y > 0) { player.y--; moved = true; }
-      else if (direction === "right" && player.y < mapSize - 1) { player.y++; moved = true; }
+    function move(direction){
+      if(gameOver) return;
+      let moved=false;
+      if(direction==='up' && player.x>0){ player.x--; moved=true; }
+      else if(direction==='down' && player.x<mapSize-1){ player.x++; moved=true; }
+      else if(direction==='left' && player.y>0){ player.y--; moved=true; }
+      else if(direction==='right' && player.y<mapSize-1){ player.y++; moved=true; }
 
-      if (moved) {
-        moveCount++; // zwiększ licznik ruchów
+      if(moved){
+        moveCount++;
         showLocation();
       }
     }
 
     function restartSame(){
-      // reset gry z tą samą postacią
-      document.getElementById("game").style.display = "block";
-      document.getElementById("characterSelect").style.display = "none";
-
+      // restart: same character & same chosen item
       player = { x: 2, y: 2 };
-      greenMushroom = {
-        x: Math.floor(Math.random() * mapSize),
-        y: Math.floor(Math.random() * mapSize)
-      };
-      discovered = Array.from({ length: mapSize }, () => Array(mapSize).fill(false));
+      greenMushroom = { x: Math.floor(Math.random()*mapSize), y: Math.floor(Math.random()*mapSize) };
+      discovered = Array.from({length:mapSize},()=>Array(mapSize).fill(false));
       discovered[player.x][player.y] = true;
       gameOver = false;
-      moveCount = 0; // reset ruchów
-      asciiDiv.textContent = "";
-      endButtons.innerHTML = "";
-      output.textContent = `Wybrałeś postać: ${characterName}\nTwoim celem jest znalezienie legendarnego KANDYDATA.`;
-
-      music.play().then(()=>{ playMusicBtn.style.display = "none"; }).catch(()=>{ playMusicBtn.style.display = "inline-block"; });
+      moveCount = 0;
+      asciiDiv.textContent='';
+      endButtons.innerHTML='';
+      output.textContent = `Wybrałeś postać: ${characterName} — ${chosenItem}\nROZPOCZNIJ GRĘ.`;
+      music.play().then(()=>{ playMusicBtn.style.display='none'; }).catch(()=>{ playMusicBtn.style.display='inline-block'; });
       showLocation();
     }
 
     function restartNew(){
-      // reset całej gry, powrót do wyboru postaci
-      document.getElementById("characterSelect").style.display = "block";
-      document.getElementById("game").style.display = "none";
-      moveCount = 0;
-      output.textContent = "";
-      asciiDiv.textContent = "";
-      endButtons.innerHTML = "";
-      playMusicBtn.style.display = "none";
-      music.pause();
-      music.currentTime = 0;
+      // back to character selection
+      document.getElementById('characterSelect').style.display='block';
+      document.getElementById('game').style.display='none';
+      inventoryScreen.style.display='none';
+      chosenItem='';
+      characterName='';
+      moveCount=0;
+      output.textContent='';
+      asciiDiv.textContent='';
+      endButtons.innerHTML='';
+      playMusicBtn.style.display='none';
+      try{ music.pause(); music.currentTime=0; }catch(e){}
     }
 
-    // Sterowanie klawiaturą
-    document.addEventListener("keydown", function(e) {
-      if (gameOver) return;
-      switch(e.key) {
-        case "ArrowUp": move("up"); break;
-        case "ArrowDown": move("down"); break;
-        case "ArrowLeft": move("left"); break;
-        case "ArrowRight": move("right"); break;
+    // key controls
+    document.addEventListener('keydown', function(e){
+      if(gameOver) return;
+      if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)){
+        switch(e.key){
+          case 'ArrowUp': move('up'); break;
+          case 'ArrowDown': move('down'); break;
+          case 'ArrowLeft': move('left'); break;
+          case 'ArrowRight': move('right'); break;
+        }
       }
     });
   </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
