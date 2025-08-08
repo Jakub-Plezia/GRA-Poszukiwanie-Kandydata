@@ -141,6 +141,7 @@
     let discovered = [];
     let characterName = "";
     let gameOver = false;
+    let moveCount = 0;
 
     const locations = [
       "gdzie potrzebne jest doświadczenie w zarządzaniu zespołami 🚀. Słyszałeś, że Legendarny Kandydat ma wieloletnie doświadczenie z zarządzaniu Zespołami w obszarze usług IT, produktów - Software jak również w bankowości",
@@ -167,7 +168,6 @@
       document.getElementById("characterSelect").style.display = "none";
       document.getElementById("game").style.display = "block";
 
-      // reset
       player = { x: 2, y: 2 };
       greenMushroom = {
         x: Math.floor(Math.random() * mapSize),
@@ -176,18 +176,16 @@
       discovered = Array.from({ length: mapSize }, () => Array(mapSize).fill(false));
       discovered[player.x][player.y] = true;
       gameOver = false;
+      moveCount = 0; // reset ruchów
       asciiDiv.textContent = "";
       endButtons.innerHTML = "";
       output.textContent = `Wybrałeś postać: ${characterName}\nROZPOCZNIJMY GRĘ. DO STEROWANIA UŻYJ KLAWIATURY LUB STRZAŁEk NA EKRANIE. Twoim celem jest znalezienie legendarnego KANDYDATA. Poniżej znajduje się mapa, która pomoże Ci w nawiagacji`;
 
-      // muzyka
       const randomTrack = musicTracks[Math.floor(Math.random() * musicTracks.length)];
       music.src = randomTrack;
-      // Próba odtworzenia (wywołanie startGame jest wynikiem kliknięcia - powinno być OK), ale i tak obsłużymy reject.
       music.play().then(()=>{
         playMusicBtn.style.display = "none";
       }).catch((err)=>{
-        // Jeśli odtwarzanie zablokowane, pokaż przycisk, żeby użytkownik dotknął ekran i odblokował
         console.log("Autoplay zablokowane:", err);
         playMusicBtn.style.display = "inline-block";
       });
@@ -236,7 +234,6 @@
       if (player.x === greenMushroom.x && player.y === greenMushroom.y && !gameOver) {
         gameOver = true;
         output.textContent += `\n\n`;
-        // Nowe ASCII-art gratulacyjne (podmienione zgodnie z Twoim tekstem)
         asciiDiv.textContent = `
  ██████  ██████   █████  ████████ ██    ██ ██       █████   ██████      ██ ███████     ███████ ███    ██  █████  ██       █████  ███████ ██      ███████ ███████     ██   ██  █████  ███    ██ ██████  ██    ██ ██████   █████  ████████  █████  
 ██       ██   ██ ██   ██    ██    ██    ██ ██      ██   ██ ██           ██ ██             ███  ████   ██ ██   ██ ██      ██   ██    ███  ██      ██      ██          ██  ██  ██   ██ ████   ██ ██   ██  ██  ██  ██   ██ ██   ██    ██    ██   ██ 
@@ -245,47 +242,15 @@
  ██████  ██   ██ ██   ██    ██     ██████  ███████ ██   ██  ██████  █████  ███████     ███████ ██   ████ ██   ██ ███████ ██   ██ ███████ ███████ ███████ ███████     ██   ██ ██   ██ ██   ████ ██████     ██    ██████  ██   ██    ██    ██   ██ 
                                                                                                                                                                                                                                                  
                                                                                                                                                                                                                                                  
-                                                                                                                                                                                                                                         
-                                                                                                                                                                                                                                         
-`;
-        output.textContent += `\n🎉 GRATULACJE! Znalazłeś LEGENDARNEGO KANDYDATA! 🌟 Możesz się z nim skontaktować poprzez LINKEDIN: 👋👋https://www.linkedin.com/in/jakub-plezia/ \nKoniec gry.`;
-        // Pokaż przyciski końcowe: restart i wybór postaci
+        `;
+        output.textContent += `\n\n🎉 GRATULACJE! Znalazłeś LEGENDARNEGO KANDYDATA! 🌟\nTwój wynik: ${moveCount} ruchów\nMożesz się z nim skontaktować poprzez LINKEDIN: 👋👋https://www.linkedin.com/in/jakub-plezia/ \nKoniec gry.`;
+
         endButtons.innerHTML = `
           <button onclick="restartSame()">Zagraj ponownie (ta sama postać)</button>
           <button onclick="restartNew()">Wybierz inną postać</button>
         `;
-        // zatrzymaj reagowanie na klawisze - ale zostaw je działające dla restartu
       }
       showMap();
-    }
-
-    function restartSame(){
-      // restart gry zachowując tę samą postać
-      document.getElementById("game").style.display = "block";
-      document.getElementById("characterSelect").style.display = "none";
-      // zresetuj pola i ustaw nową pozycję grzyba
-      player = { x: 2, y: 2 };
-      greenMushroom = {
-        x: Math.floor(Math.random() * mapSize),
-        y: Math.floor(Math.random() * mapSize)
-      };
-      discovered = Array.from({ length: mapSize }, () => Array(mapSize).fill(false));
-      discovered[player.x][player.y] = true;
-      gameOver = false;
-      asciiDiv.textContent = "";
-      endButtons.innerHTML = "";
-      output.textContent = `Wybrałeś postać: ${characterName}\nTwoim celem jest znalezienie legendarnego KANDYDATA.`;
-      // spróbuj wznowić muzykę
-      music.play().then(()=>{ playMusicBtn.style.display = "none"; }).catch(()=>{ playMusicBtn.style.display = "inline-block"; });
-      showLocation();
-    }
-
-    function restartNew(){
-      // powrót do wyboru postaci
-      document.getElementById("game").style.display = "none";
-      document.getElementById("characterSelect").style.display = "block";
-      // zatrzymaj muzykę
-      try{ music.pause(); music.currentTime = 0; }catch(e){}
     }
 
     function move(direction) {
@@ -296,34 +261,57 @@
       else if (direction === "left" && player.y > 0) { player.y--; moved = true; }
       else if (direction === "right" && player.y < mapSize - 1) { player.y++; moved = true; }
 
-      if (moved) showLocation();
+      if (moved) {
+        moveCount++; // zwiększ licznik ruchów
+        showLocation();
+      }
     }
 
-    function handleKey(event) {
-      if (event.key === "ArrowUp") move("up");
-      else if (event.key === "ArrowDown") move("down");
-      else if (event.key === "ArrowLeft") move("left");
-      else if (event.key === "ArrowRight") move("right");
+    function restartSame(){
+      // reset gry z tą samą postacią
+      document.getElementById("game").style.display = "block";
+      document.getElementById("characterSelect").style.display = "none";
+
+      player = { x: 2, y: 2 };
+      greenMushroom = {
+        x: Math.floor(Math.random() * mapSize),
+        y: Math.floor(Math.random() * mapSize)
+      };
+      discovered = Array.from({ length: mapSize }, () => Array(mapSize).fill(false));
+      discovered[player.x][player.y] = true;
+      gameOver = false;
+      moveCount = 0; // reset ruchów
+      asciiDiv.textContent = "";
+      endButtons.innerHTML = "";
+      output.textContent = `Wybrałeś postać: ${characterName}\nTwoim celem jest znalezienie legendarnego KANDYDATA.`;
+
+      music.play().then(()=>{ playMusicBtn.style.display = "none"; }).catch(()=>{ playMusicBtn.style.display = "inline-block"; });
+      showLocation();
     }
 
-    document.addEventListener("keydown", handleKey);
+    function restartNew(){
+      // reset całej gry, powrót do wyboru postaci
+      document.getElementById("characterSelect").style.display = "block";
+      document.getElementById("game").style.display = "none";
+      moveCount = 0;
+      output.textContent = "";
+      asciiDiv.textContent = "";
+      endButtons.innerHTML = "";
+      playMusicBtn.style.display = "none";
+      music.pause();
+      music.currentTime = 0;
+    }
+
+    // Sterowanie klawiaturą
+    document.addEventListener("keydown", function(e) {
+      if (gameOver) return;
+      switch(e.key) {
+        case "ArrowUp": move("up"); break;
+        case "ArrowDown": move("down"); break;
+        case "ArrowLeft": move("left"); break;
+        case "ArrowRight": move("right"); break;
+      }
+    });
   </script>
 </body>
-
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
