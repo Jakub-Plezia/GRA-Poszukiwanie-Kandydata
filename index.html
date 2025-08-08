@@ -178,7 +178,7 @@
       gameOver = false;
       asciiDiv.textContent = "";
       endButtons.innerHTML = "";
-      output.textContent = `Wybrałeś postać: ${characterName}\nTwoim celem jest znalezienie legendarnego ZIELONEGO GRZYBA.`;
+      output.textContent = `Wybrałeś postać: ${characterName}\nTwoim celem jest znalezienie legendarnego KANDYDATA.`;
 
       // muzyka
       const randomTrack = musicTracks[Math.floor(Math.random() * musicTracks.length)];
@@ -214,7 +214,7 @@
       for (let i = 0; i < mapSize; i++) {
         for (let j = 0; j < mapSize; j++) {
           if (i === player.x && j === player.y) {
-            mapText += "P ";
+            mapText += "😎";
           } else if (discovered[i][j] && i === greenMushroom.x && j === greenMushroom.y) {
             mapText += "G ";
           } else if (discovered[i][j]) {
@@ -309,4 +309,5 @@
     document.addEventListener("keydown", handleKey);
   </script>
 </body>
+
 </html>
