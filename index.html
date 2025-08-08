@@ -214,7 +214,7 @@
       for (let i = 0; i < mapSize; i++) {
         for (let j = 0; j < mapSize; j++) {
           if (i === player.x && j === player.y) {
-            mapText += "😎";
+            mapText += " 😎";
           } else if (discovered[i][j] && i === greenMushroom.x && j === greenMushroom.y) {
             mapText += "G ";
           } else if (discovered[i][j]) {
@@ -311,4 +311,5 @@
 </body>
 
 </html>
+
 
