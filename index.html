@@ -271,7 +271,7 @@
     function showLocation(){
       discovered[player.x][player.y] = true;
       const loc = describeLocation(player.x, player.y);
-      output.textContent += `\n#Jesteś w miejscu: ${loc}. (${player.x},${player.y})`;
+      output.textContent += `\n🌏Jesteś w miejscu: ${loc}. (${player.x},${player.y})`;
 
       if(player.x===greenMushroom.x && player.y===greenMushroom.y && !gameOver){
         if(moveCount < 5){
@@ -397,6 +397,7 @@
   </script>
 </body>
 </html>
+
 
 
 
