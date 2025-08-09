@@ -217,7 +217,7 @@
       moveCount = 0;
       asciiDiv.textContent = '';
       endButtons.innerHTML = '';
-      output.textContent = `Wybrałeś postać: ${characterName} — ${chosenItem}\nROZPOCZNIJ GRĘ. Steruj strzałkami na klawiaturze lub przyciskami na ekranie. Poniżej mapa, która pomoże Ci w nawigacji.`;
+      output.textContent = `Wybrałeś postać: ${characterName} — ${chosenItem}\nROZPOCZNIJ GRĘ. Steruj strzałkami na klawiaturze lub przyciskami na ekranie. Poniżej jest mapa, która pomoże Ci w nawigacji.\n `;
 
       const randomTrack = musicTracks[Math.floor(Math.random()*musicTracks.length)];
       music.src = randomTrack;
@@ -384,6 +384,7 @@
   </script>
 </body>
 </html>
+
 
 
 
