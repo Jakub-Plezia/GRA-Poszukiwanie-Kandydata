@@ -265,8 +265,7 @@
           output.textContent += `\n\n🎯 Znalazłeś kandydata, ale musisz wykonać przynajmniej 5 ruchów. Wykonałeś: ${moveCount}. Wykonaj brakujące ruchy i wróć na mapie na ikonę: 💎\n `;
         } else {
           gameOver = true;
-          asciiDiv.innerHTML = `
-<img src="https://github.com/Jakub-Plezia/GRA-Poszukiwanie-Kandydata/blob/main/jak.jpg?raw=truealt=" Opis obrazu"`;
+          asciiDiv.innerHTML = `<img src="https://github.com/Jakub-Plezia/GRA-Poszukiwanie-Kandydata/blob/main/jak.jpg?raw=truealt=" Opis obrazu" width="640" height="320">`;
           // build end message
           let endText = `\n\n🎉 GRATULACJE! Znalazłeś LEGENDARNEGO KANDYDATA! 🌟\nTwój wynik: ${moveCount} ruchów\n`;
           if(chosenItem){
@@ -346,6 +345,7 @@
   </script>
 </body>
 </html>
+
 
 
 
