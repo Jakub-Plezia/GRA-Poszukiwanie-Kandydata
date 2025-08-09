@@ -266,16 +266,11 @@
         } else {
           gameOver = true;
           asciiDiv.textContent = `
- ██████  ██████   █████  ████████ ██    ██ ██       █████   ██████      ██ ███████     ███████ ███    ██  █████  ██       █████  ███████ ██      ███████ ███████     ██   ██  █████  ███    ██ ██████  ██    ██ ██████   █████  ████████  █████  
-██       ██   ██ ██   ██    ██    ██    ██ ██      ██   ██ ██           ██ ██             ███  ████   ██ ██   ██ ██      ██   ██    ███  ██      ██      ██          ██  ██  ██   ██ ████   ██ ██   ██  ██  ██  ██   ██ ██   ██    ██    ██   ██ 
-██   ███ ██████  ███████    ██    ██    ██ ██      ███████ ██           ██ █████         ███   ██ ██  ██ ███████ ██      ███████   ███   ██      █████   ███████     █████   ███████ ██ ██  ██ ██   ██   ████   ██   ██ ███████    ██    ███████ 
-██    ██ ██   ██ ██   ██    ██    ██    ██ ██      ██   ██ ██      ██   ██ ██           ███    ██  ██ ██ ██   ██ ██      ██   ██  ███    ██      ██           ██     ██  ██  ██   ██ ██  ██ ██ ██   ██    ██    ██   ██ ██   ██    ██    ██   ██ 
- ██████  ██   ██ ██   ██    ██     ██████  ███████ ██   ██  ██████  █████  ███████     ███████ ██   ████ ██   ██ ███████ ██   ██ ███████ ███████ ███████ ███████     ██   ██ ██   ██ ██   ████ ██████     ██    ██████  ██   ██    ██    ██   ██ 
-`;
+<img src="https://github.com/Jakub-Plezia/GRA-Poszukiwanie-Kandydata/blob/main/jak.jpg?raw=truealt=" Opis obrazu">`;
           // build end message
           let endText = `\n\n🎉 GRATULACJE! Znalazłeś LEGENDARNEGO KANDYDATA! 🌟\nTwój wynik: ${moveCount} ruchów\n`;
           if(chosenItem){
-            endText += `${chosenItem} — ten przedmiot lśni i drży — ten kandydat to perfect match!\n \nMożesz się z nim skontaktować poprzez LINKEDIN: 👋👋 https://www.linkedin.com/in/jakub-plezia/\ \n \nJakub Plezia: Growth-Focused Business Leader | Software & IT Services | Experienced Team Manager \nKoniec gry.\n<img src="https://github.com/Jakub-Plezia/GRA-Poszukiwanie-Kandydata/blob/main/jak.jpg?raw=truealt=" Opis obrazu">\n👍LIKE 🔄SHARE 💬COMMENT - akcja #OPEN TO WORK`;
+            endText += `${chosenItem} — ten przedmiot lśni i drży — ten kandydat to perfect match!\n \nMożesz się z nim skontaktować poprzez LINKEDIN: 👋👋 https://www.linkedin.com/in/jakub-plezia/\ \n \nJakub Plezia: Growth-Focused Business Leader | Software & IT Services | Experienced Team Manager \nKoniec gry.\n \n👍LIKE 🔄SHARE 💬COMMENT - akcja #OPEN TO WORK`;
           }
           if(characterName === 'Turysta' && chosenItem.toLowerCase().includes('map')){
             endText += `\n🗺 Udostępnij post - poszerz zasięgi\n`;
@@ -351,6 +346,7 @@
   </script>
 </body>
 </html>
+
 
 
 
